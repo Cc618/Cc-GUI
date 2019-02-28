@@ -16,8 +16,6 @@ class TestWidget(ui.Widget):
     - Space (when focused) : the color becomes magenta
     """
 
-
-
     def __init__(self, x, y):
         super(TestWidget, self).__init__(x, y, 100, 100)
 
