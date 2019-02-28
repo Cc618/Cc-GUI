@@ -19,6 +19,9 @@ class App:
         # The most important widget, the widget targeted by the user
         self.focused_child = None
 
+        # The last widget which has been hovered by the mouse
+        self.last_widget_mouse_hover = None
+
     ################ Methods ################
     def launch(self):
         """ Launch the app, open the window and start the event management """
@@ -61,7 +64,16 @@ class App:
                         self.focused_child.mouse_release(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1])
 
                 elif event.type == pg.MOUSEMOTION:
-                    self.raw_mouse_event(lambda widget, x, y: widget.mouse_move(x, y))
+                    self._send_mouse_motion(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1])
+
+                ######## Keyboard ########
+                elif event.type == pg.KEYDOWN:
+                    if self.focused_child is not None:
+                        self.focused_child.key_down(event.key)
+
+                elif event.type == pg.KEYUP:
+                    if self.focused_child is not None:
+                        self.focused_child.key_up(event.key)
 
     def add_widget(self, widget):
         """
@@ -111,6 +123,8 @@ class App:
         # Event dispatcher
         event(target, x, y)
 
+    ######## Keyboard ########
+
     ######## Intern ########
     def _send_mouse_click(self, widget, x, y):
         """ When we must send MOUSEBUTTONDOWN to the widget in the event loop """
@@ -127,6 +141,42 @@ class App:
 
         # Event dispatcher
         widget.mouse_right_click(x, y)
+
+    def _send_mouse_motion(self, x, y):
+        """
+            To send all the events relative to mouse motion:
+        - mouse_move
+        - mouse_enter
+        - mouse_leave
+        """
+        # We search the target widget
+        target = self.widget_pointed(x, y)
+
+        # No target, we can't dispatch the event
+        if target is None:
+            # The mouse leaves the old widget if it covered a widget
+            if self.last_widget_mouse_hover is not None:
+                # We can send the mouse_enter event
+                self.last_widget_mouse_hover.mouse_leave(x, y)
+
+                # The mouse cover no widgets so it's None
+                self.last_widget_mouse_hover = None
+            return
+
+        # The mouse covers a new widget
+        if self.last_widget_mouse_hover != target:
+            # We can send the mouse_enter event if the mouse was onto another widget
+            if self.last_widget_mouse_hover is not None:
+                self.last_widget_mouse_hover.mouse_leave(x, y)
+
+            # mouse_enter event dispatcher
+            target.mouse_enter(x, y)
+
+            # Last widget with mouse onto update
+            self.last_widget_mouse_hover = target
+
+        # Dispatch the mouse_move event after
+        target.mouse_move(x, y)
 
     ################ Methods ################
     def send_repaint(self, widget):
@@ -226,6 +276,10 @@ class Widget:
         """ When a right click is detected in the hitbox """
         pass
 
+    def mouse_move(self, x, y):
+        """ When the mouse moves inside the hitbox """
+        pass
+
     def mouse_enter(self, x, y):
         """ When the mouse enters the hitbox """
         pass
@@ -234,8 +288,13 @@ class Widget:
         """ When the mouse leaves the hitbox """
         pass
 
-    def mouse_move(self, x, y):
-        """ When the mouse moves inside the hitbox """
+    ######## Keyboard ########
+    def key_down(self, key):
+        """ When the widget is focused and when a key becomes pressed """
+        pass
+
+    def key_up(self, key):
+        """ When the widget is focused and when a key becomes released """
         pass
 
     ######## Focus ########

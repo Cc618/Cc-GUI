@@ -1,18 +1,34 @@
 import cc_gui as ui
+
+import pygame as pg
 from pygame import draw
 from pygame import gfxdraw as gfx
 
 
 class TestWidget(ui.Widget):
+    """
+            Just a simple custom widget to test some things...
+        Controls:
+    - Click : the color becomes blue
+    - Mouse Hover : the color becomes light red
+    - Right Click : the color becomes white
+    - Focus : we see a green overlay
+    - Space (when focused) : the color becomes magenta
+    """
+
+
+
     def __init__(self, x, y):
         super(TestWidget, self).__init__(x, y, 100, 100)
+
+        self.mouse_on = False
 
         # Red
         self.color = (255, 0, 0)
 
     def paint(self, s):
         # Background
-        draw.rect(s, self.color, self.get_hitbox())
+        draw.rect(s, (255, 100, 100) if self.mouse_on and self.color == (255, 0, 0) else self.color, self.get_hitbox())
 
         # Overlay if focused
         if self.focused:
@@ -40,6 +56,28 @@ class TestWidget(ui.Widget):
         # We must repaint the widget (don't call directly paint)
         self.repaint()
 
+    def mouse_enter(self, x, y):
+        self.mouse_on = True
+        self.repaint()
+
+    def mouse_leave(self, x, y):
+        self.mouse_on = False
+        self.repaint()
+
+    def key_down(self, k):
+        if k == pg.K_SPACE:
+            # Magenta
+            self.color = (255, 0, 255)
+ 
+        self.repaint()
+
+    def key_up(self, k):
+        if k == pg.K_SPACE:
+            # Red
+            self.color = (255, 0, 0)
+
+        self.repaint()
+
 
 
 # Create the app #
@@ -53,6 +91,7 @@ app = ui.App(400, 600, "My App", "res/img/icon.bmp")
 # Custom widget
 app.add_widget(TestWidget(10, 10))
 app.add_widget(TestWidget(120, 10))
+app.add_widget(TestWidget(220, 10))
 
 # Start the app #
 app.launch()
