@@ -1,0 +1,16 @@
+	* App:
+
+	* Widgets:
+- Containers
+- Interface to get methods for containers (events dispatcher)
+
+
+	* Other:
+- Theme with primary and secondary colors
+
+
+	* Std lib:
+- Lib with basics widgets like buttons, text edits...
+- Std Theme
+
+
